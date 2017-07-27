@@ -1,12 +1,14 @@
 import os, sys
 import glob
 import csv, pyodbc
+import pandas
+import sqlite3
 
 currdir = os.getcwd()
 csv_dir = os.path.join(currdir, 'csv')
-mdbs_path = r'path\to\mdbs'
+mdbs_path = r'path/to/mdbs'
 db_file = os.path.join(currdir, 'test.db')
-csv2sqlite = os.path.join(currdir, 'csv2sqlite', 'csv2sqlite.py')
+
 
 def create_csv(mdb_file):
     MDB = mdb_file
@@ -56,19 +58,20 @@ def create_csv(mdb_file):
 
 def csv_to_sql(path):
     os.chdir(path)
+    cnx = sqlite3.connect(db_file)
     for filename in glob.glob("*.csv"):
         (f_path, f_name) = os.path.split(filename)
         (f_short_name, f_extension) = os.path.splitext(f_name)
         tbl = str(f_short_name)
-        os.system('python {0} {1} "{2}" {3}'.format(csv2sqlite,
-                                                    filename,
-                                                    db_file,
-                                                    tbl))
+        df = pandas.read_csv(filename)
+        df.to_sql(tbl, cnx)
+       
 
 def del_csv(path):
     os.chdir(path)
     for filename in glob.glob("*.csv"):
-        os.remove(filename)    
+        os.remove(filename)
+        
 
 mdbs = []                                                              
 for f in os.listdir(mdbs_path):
