@@ -4,7 +4,7 @@ import csv, pyodbc
 
 currdir = os.getcwd()
 csv_dir = os.path.join(currdir, 'csv')
-mdbs_path = r'C:\Users\Peace\Documents\scripts\mdbs'
+mdbs_path = r'path\to\mdbs'
 db_file = os.path.join(currdir, 'test.db')
 csv2sqlite = os.path.join(currdir, 'csv2sqlite', 'csv2sqlite.py')
 
