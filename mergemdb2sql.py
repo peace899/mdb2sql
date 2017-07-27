@@ -3,12 +3,13 @@ import glob
 import csv, pyodbc
 import pandas
 import sqlite3
+import xlwt
 
 currdir = os.getcwd()
 csv_dir = os.path.join(currdir, 'csv')
 mdbs_path = r'path/to/mdbs'
 db_file = os.path.join(currdir, 'test.db')
-
+excel_file = os.path.join(currdir, 'test.xls')
 
 def create_csv(mdb_file):
     MDB = mdb_file
@@ -72,7 +73,23 @@ def del_csv(path):
     for filename in glob.glob("*.csv"):
         os.remove(filename)
         
-
+def csv_to_xls(path):
+    os.chdir(path)
+    
+    wb = xlwt.Workbook()
+    for filename in glob.glob("*.csv"):
+        (f_path, f_name) = os.path.split(filename)
+        (f_short_name, f_extension) = os.path.splitext(f_name)
+        ws = wb.add_sheet(str(f_short_name))
+        spamReader = csv.reader(open(filename, 'rb'), delimiter=',',quotechar='"')
+        row_count = 0
+        for row in spamReader:
+            for col in range(len(row)):
+                ws.write(row_count,col,row[col])
+            row_count +=1
+    wb.save(excel_file)
+    
+    
 mdbs = []                                                              
 for f in os.listdir(mdbs_path):
     if f.endswith(".mdb"):
