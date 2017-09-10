@@ -22,22 +22,45 @@ ALLOWED_EXTENSIONS = set(['MDB', 'mdb'])
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+def find_drv(name, path):
+    for root, dirs, files in os.walk(path):
+        if name in files:
+            return os.path.join(root, name)
+
 def convert_to_xls(mdb_file, xls_file):
          
-    DRV = '{Microsoft Access Driver (*.mdb)}'; 
-    conn = pyodbc.connect('DRIVER={};DBQ={}'.format(DRV,mdb_file))
-    cur = conn.cursor()
+    if sys.platform.startswith('linux'):
+        if os.path.exists('/usr/lib/libmdbodbc.so'):
+            DRV = '/usr/lib/libmdbodbc.so'
+        else:
+            DRV = str(find_drv('libmdbodbc.so', '/'));
+        MDB = mdb_file.replace(" ", "\ ")
+        conn = pyodbc.connect('DRIVER={};DBQ={}'.format(DRV, MDB))
+        conn.autocommit = True
+        conn.setencoding('latin1')
+        conn.setdecoding(pyodbc.SQL_CHAR, 'latin1')
+        conn.setdecoding(pyodbc.SQL_WCHAR, 'latin1')
+        cur = conn.cursor()
+    else:
+        DRV = '{Microsoft Access Driver (*.mdb)}';
+        MDB = mdb_file
+        conn = pyodbc.connect('DRIVER={};DBQ={}'.format(DRV,MDB))
+        cur = conn.cursor()
+           
     wb = xlwt.Workbook(encoding='utf-8')
     tables = []
     for row in cur.tables():
         if 'MSys' not in row.table_name:
             tables.append(row.table_name)
     
+    
     for table in tables:
         print('Creating worksheet {}'.format(table))
+        if sys.platform.startswith('linux'):
+            SQL = 'SELECT * FROM {}'.format(table) 
+        else:
+            SQL = 'SELECT * FROM [{}];'.format(table) # your query goes here
         
-                   
-        SQL = 'SELECT * FROM [{}];'.format(table) # your query goes here
         rows = cur.execute(SQL).fetchall()
         columns = [i[0] for i in cur.description]
        
@@ -81,7 +104,7 @@ def upload_file():
             # Send excel file as download after converting
             return send_file(xls_file, as_attachment=True)
         else:
-            return "file not allowed"
+            return "Please choose MSAccess mdb file"
     return '''
     <!doctype html>
     <title>MDB2XLS Converter</title>
@@ -92,4 +115,4 @@ def upload_file():
     </form>
     '''
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='127.0.0.1', port=5000, debug=True)
