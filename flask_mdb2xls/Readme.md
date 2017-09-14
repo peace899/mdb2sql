@@ -14,5 +14,14 @@ To install the libraries and modules just run:
   > pip install flask
   
   > pip install Werkzeug
-  
+
+
+
+ 
+To use just the python script and open your browser and go to address: http://127.0.0.1:5000
+Browse for the file you want convert and it send you an Excel file as download.
+
+ 
+Preview:
+![](mdb2xls.PNG?raw=true)
  
