@@ -1,3 +1,5 @@
+# Author: Peace Lekalakala
+# peacester at gmail dot com
 import os
 import pyodbc
 import sys
