@@ -18,7 +18,7 @@ To install the libraries and modules just run:
 
 
  
-To use just the python script and open your browser and go to address: http://127.0.0.1:5000
+To use just run the python script and open your browser and go to address: http://127.0.0.1:5000
 Browse for the file you want convert and it send you an Excel file as download.
 
  
