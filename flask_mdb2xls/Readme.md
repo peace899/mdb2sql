@@ -13,7 +13,7 @@ To install the libraries and modules just run:
   
   > pip install flask
   
-  > pip install Werkzeug
+  
 
 
 
