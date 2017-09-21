@@ -4,7 +4,7 @@ This script requires the following modules and libraries installed:
  * [PyODBC](https://mkleehammer.github.io/pyodbc/) 
  * [xlwt](https://pypi.python.org/pypi/xlwt)
  * [Flask web framework](http://flask.pocoo.org/)
- * [Werkzeug : Web Server Gateway Interface (WSGI)](http://werkzeug.pocoo.org/)
+ * [Werkzeug : Web Server Gateway Interface (WSGI
 
 To install the libraries and modules just run:
   > pip install pyodbc
