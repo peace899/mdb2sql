@@ -1,16 +1,16 @@
 # Author: Peace Lekalakala
 # peacester at gmail dot com
+
+import io
 import os
+import pandas as pd
 import pyodbc
 import sys
-import time
-import xlwt
 
-from flask import Flask, request, redirect, url_for
-from flask import send_from_directory, send_file
+from flask import Flask, request, send_file
+from os.path import expanduser
 from werkzeug.utils import secure_filename
 
-from os.path import expanduser
 home = expanduser("~")
 UPLOAD_FOLDER = os.path.join(home, 'FlaskData')
 
@@ -29,8 +29,10 @@ def find_drv(name, path):
         if name in files:
             return os.path.join(root, name)
 
-def convert_to_xls(mdb_file, xls_file):
-         
+def convert_to_xls(mdb_file, xlsf):
+    writer = pd.ExcelWriter(xlsf, engine='xlsxwriter')   
+    
+    # Connect to mdb
     if sys.platform.startswith('linux'):
         if os.path.exists('/usr/lib/libmdbodbc.so'):
             DRV = '/usr/lib/libmdbodbc.so'
@@ -48,39 +50,30 @@ def convert_to_xls(mdb_file, xls_file):
         MDB = mdb_file
         conn = pyodbc.connect('DRIVER={};DBQ={}'.format(DRV,MDB))
         cur = conn.cursor()
-           
-    wb = xlwt.Workbook(encoding='utf-8')
+          
+    # Get table names from the mdb
     tables = []
     for row in cur.tables():
         if 'MSys' not in row.table_name:
             tables.append(row.table_name)
     
-    
+    # Create worksheets from tables
     for table in tables:
         print('Creating worksheet {}'.format(table))
+        
+        # Query table
         if sys.platform.startswith('linux'):
             SQL = 'SELECT * FROM {}'.format(table) 
         else:
-            SQL = 'SELECT * FROM [{}];'.format(table) # your query goes here
+            SQL = 'SELECT * FROM [{}];'.format(table) 
         
-        rows = cur.execute(SQL).fetchall()
-        columns = [i[0] for i in cur.description]
-       
+        df = pd.read_sql(SQL, conn)
+        df.to_excel(writer, sheet_name=table, index=False, encoding="utf-8")
         
-        ws = wb.add_sheet(table)
-        row_num = 0
-        font_style = xlwt.XFStyle()
-        font_style.font.bold = True
-        for col_num in range(len(columns)):
-            ws.write(row_num, col_num, columns[col_num], font_style)
-        
-        for row in rows:
-            row_num += 1
-            for col_num in range(len(row)):
-                ws.write(row_num, col_num, row[col_num])
-        
-    wb.save(xls_file)
+    # Save 'final' excel file and close mdb connection    
+    writer.save()
     cur.close()
+    return xlsf
     
     
 def allowed_file(filename):
@@ -93,18 +86,30 @@ def upload_file():
         file = request.files['file']
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             
+            # Save the file to convert in upload folder
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             mdb_file = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            
+            # Name final excel file with mdb prefix
             db_file_short = os.path.basename(mdb_file)
             xls_file = os.path.splitext(db_file_short)[0]+ '.xls'
-            xls_file = os.path.join(app.config['UPLOAD_FOLDER'], xls_file)
             
-            # Convert mdb file to excel
-            convert_to_xls(mdb_file, xls_file)
+            # Create an excel file in memory
+            mem_file = io.BytesIO()
+            
+            # Convert mdb file to excel format and read from memory
+            xlsf = convert_to_xls(mdb_file, mem_file)
+            xlsf.seek(0)
+            
+            # Remove the uploaded file
+            os.remove(mdb_file)
             
             # Send excel file as download after converting
-            return send_file(xls_file, as_attachment=True)
+            return send_file(xlsf,
+                             attachment_filename=xls_file,
+                             as_attachment=True)
+            
         else:
             return "Please choose MSAccess mdb file"
     return '''
