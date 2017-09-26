@@ -2,13 +2,13 @@ This script converts TIPS MS Access .mdb writeout files to Excel formats that ca
 
 This script requires the following modules and libraries installed:
  * [PyODBC](https://mkleehammer.github.io/pyodbc/) 
- * [xlwt](https://pypi.python.org/pypi/xlwt)
+ * [pandas](https://pypi.python.org/pypi/pandas)
  * [Flask web framework](http://flask.pocoo.org/)
 
 To install the libraries and modules just run:
   > pip install pyodbc
   
-  > pip install xlwt
+  > pip install pandas
   
   > pip install flask
   
