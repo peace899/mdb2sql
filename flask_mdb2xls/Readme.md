@@ -4,9 +4,12 @@ This script requires the following modules and libraries installed:
  * [PyODBC](https://mkleehammer.github.io/pyodbc/) 
  * [pandas](https://pypi.python.org/pypi/pandas)
  * [Flask web framework](http://flask.pocoo.org/)
+ * [XLSXWriter](http://xlsxwriter.readthedocs.io/)
 
 To install the libraries and modules just run:
   > pip install pyodbc
+  
+  > pip install xlsxwriter
   
   > pip install pandas
   
